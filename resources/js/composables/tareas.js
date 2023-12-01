@@ -54,7 +54,6 @@ export default function useTareas(){
         } catch (e) {
             if( e.response.status === 422 ){
                 errors.value = e.response.data.errors;
-                console.log(errors.value)
             }
         }
         
