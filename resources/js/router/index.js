@@ -6,7 +6,7 @@ import TareaEdit from "../components/TareaEdit.vue";
 
 const routes = [
   {
-    path: "/tarea/list",
+    path: "/home",
     name: "tarea.home",
     component: TareaHome,
   },

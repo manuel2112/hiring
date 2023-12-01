@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+
+@if (Auth::check()) 
+    <meta name="user_id" content="{{ Auth::user()->id }}" />
+@endif 
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12" id="app-vue">

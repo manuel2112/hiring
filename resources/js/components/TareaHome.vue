@@ -16,6 +16,7 @@
             <tr>
                 <th scope="col">#</th>
                 <th scope="col">TAREA</th>
+                <th scope="col">REALIZAR</th>
                 <th scope="col">FECHA</th>
                 <th scope="col">ACCIONES</th>
             </tr>
@@ -25,11 +26,12 @@
                 <tr>
                     <th scope="row">{{ ++idx }}</th>
                     <td>{{ item.titulo }}</td>
+                    <td width="40%">{{ item.tarea }}</td>
                     <td>{{ formatDate(item.fecha) }}</td>
                     <td>
                         <button type="button" class="btn btn-success" @click="confirmTarea(item.id)"><i class="fa-solid fa-check"></i></button>
                         <router-link :to="{name: 'tarea.edit', params: {id: item.id}}" class="btn btn-warning"><i class="fa-regular fa-pen-to-square"></i></router-link>
-                        <button type="button" class="btn btn-danger" @click="deleteTarea(item.id)"><i class="fa-solid fa-trash"></i></button>
+                        <button type="button" class="btn btn-danger" @click="deleteTarea(item.id,item.user_id)"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
 
@@ -58,11 +60,11 @@ import Swal from 'sweetalert2';
         },
 
         setup(){
-            const { tareas, getTareas, destroyTarea, updateFieldTarea } = useTareas();
+            const { tareas, getTareas, destroyTarea, updateFieldTarea, user_id } = useTareas();
 
             onMounted( () => getTareas());
 
-            const deleteTarea = (id) => {
+            const deleteTarea = (id, user) => {
 
                 Swal.fire({
                         title: "¿ESTÁS SEGURO DE ELIMINAR ESTA TAREA?",
@@ -74,9 +76,13 @@ import Swal from 'sweetalert2';
                         allowOutsideClick: false
                     }).then(async (result) => {
                         if (result.isConfirmed) {
-                            await destroyTarea(id);
-                            await getTareas();
-                            Swal.fire("TAREA ELIMINADA!", "", "success");
+                            if( user == user_id ){
+                                await destroyTarea(id);
+                                await getTareas();
+                                Swal.fire("TAREA ELIMINADA!", "", "success");
+                            }else{
+                                Swal.fire("PERMISO DENEGADO", "USTED NO TIENE PERMISOS PARA REALIZAR ESTA ACCIÓN", "error");
+                            }
                         }
                     }
                 );
@@ -91,10 +97,20 @@ import Swal from 'sweetalert2';
                         confirmButtonText: "CONFIRMAR",
                         confirmButtonColor: "#198754",
                         cancelButtonText: "CANCELAR",
-                        allowOutsideClick: false
+                        allowOutsideClick: false,
+                        showLoaderOnConfirm: true,
+                        preConfirm: async () => {
+                            try {
+                                await updateFieldTarea(id);
+                            } catch (error) {
+                            Swal.showValidationMessage(`
+                                Request failed: ${error}
+                            `);
+                            }
+                        },
                     }).then(async (result) => {
                         if (result.isConfirmed) {
-                            await updateFieldTarea(id);
+                            // await updateFieldTarea(id);
                             await getTareas();
                             Swal.fire("TAREA REALIZADA!", "", "success");
                         }

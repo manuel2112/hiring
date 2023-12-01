@@ -13,5 +13,6 @@ class Tarea extends Model
         "tarea",
         "fecha",
         "realizada",
+        "user_id"
     ];
 }

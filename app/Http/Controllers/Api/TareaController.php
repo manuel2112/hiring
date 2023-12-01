@@ -5,18 +5,29 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TareaRequest;
 use App\Http\Resources\TareaResource;
+use App\Mail\TareaAviso;
 use App\Models\Tarea;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class TareaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return TareaResource::collection(Tarea::paginate(20)->where('realizada', false));
+        try {
+            $user_id = $request->input('user_id');
+            return DB::table('tareas')
+            ->where('realizada', '=', false)
+            ->where('user_id', '=', $user_id)
+            ->paginate(5);
+        } catch (\Throwable $th) {
+            return $th;
+        }
     }
 
     /**
@@ -25,9 +36,8 @@ class TareaController extends Controller
     public function store(TareaRequest $request)
     {
         try {
-            return 'pasa';
-            // $tarea = Tarea::create($request->validated());    
-            // return new TareaResource($tarea);
+            $tarea = Tarea::create($request->validated());
+            return new TareaResource($tarea);
         } catch (\Throwable $th) {
             return $th;
         }
@@ -53,9 +63,15 @@ class TareaController extends Controller
 
     public function confirmTarea($id)
     {
-        Tarea::where('id', $id)->update(array('realizada' => true));
-        
-        // Mail::to('manuel2112@hotnail.com')->send(new TareaAviso($id));
+        try {
+            Tarea::where('id', $id)->update(array('realizada' => true));
+            $tarea = Tarea::findOrFail($id);
+            $user  = User::findOrFail($tarea->user_id);
+            Mail::to($user->email)->send(new TareaAviso($tarea, $user));
+            return response()->noContent();
+        } catch (\Throwable $th) {
+            return $th;
+        }
     }
        
 

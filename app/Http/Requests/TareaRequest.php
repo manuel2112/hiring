@@ -24,7 +24,8 @@ class TareaRequest extends FormRequest
         return [
             "titulo" => "required",
             "tarea" => "required",
-            "fecha" => "required"
+            "fecha" => "required",
+            "user_id" => "required"
         ];
     }
 }

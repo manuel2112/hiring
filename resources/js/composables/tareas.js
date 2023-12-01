@@ -1,6 +1,7 @@
 import axios from "axios";
 import {ref} from "vue";
 import { useRouter } from "vue-router";
+import Swal from 'sweetalert2';
 
 export default function useTareas(){
 
@@ -8,6 +9,7 @@ export default function useTareas(){
     const tarea  = ref([]);
     const errors = ref('');
     const router = useRouter();
+    const user_id = document.querySelector("meta[name='user_id']").getAttribute('content');
 
     // SIN PAGINACIÓN
     // const getTareas = async() => {
@@ -17,13 +19,22 @@ export default function useTareas(){
     // }
     const getTareas = async(page) => {
 
-        const res = await axios.get(`/api/tareas?page=${page}`);
+        const res = await axios.get(`/api/tareas?page=${page}`, {
+            params: {
+              user_id
+            }
+          });
         tareas.value = res.data;
     }
 
     const getTarea = async(id) => {
 
         const res = await axios.get(`/api/tareas/${id}`);
+
+        if( res.data.data.user_id != user_id ){
+            Swal.fire("PERMISO DENEGADO", "USTED NO TIENE PERMISOS PARA REALIZAR ESTA ACCIÓN", "error");
+            await router.push({name: 'tarea.home'});
+        }
         tarea.value = res.data.data;
     }
     
@@ -34,12 +45,12 @@ export default function useTareas(){
     
     const storeTarea = async(data) => {
 
+        data.user_id = user_id;
         errors.value = '';
 
         try {
-            const resp = await axios.post('/api/tareas', data);
-            console.log(resp)
-            // await router.push({name: 'tarea.home'});
+            await axios.post('/api/tareas', data);
+            await router.push({name: 'tarea.home'});
         } catch (e) {
             if( e.response.status === 422 ){
                 errors.value = e.response.data.errors;
@@ -67,13 +78,15 @@ export default function useTareas(){
     
     const updateFieldTarea = async(id) => {
 
+        Swal.showLoading();
+
         errors.value = '';
 
         try {
             const resp = await axios.patch(`/api/tareas/confirm/${id}`);
-            console.log(resp)
-            // await router.push({name: 'tarea.home'});
+            await router.push({name: 'tarea.home'});
         } catch (e) {
+            console.log(e)
             if( e.response.status === 422 ){
                 errors.value = e.response.data.errors;
                 console.log(errors.value)
@@ -93,6 +106,7 @@ export default function useTareas(){
         storeTarea,
         updateTarea,
         updateFieldTarea,
-        errors
+        errors,
+        user_id
     }
 }
