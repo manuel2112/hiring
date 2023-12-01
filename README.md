@@ -11,5 +11,5 @@
 
 ## Consideraciones
 
-- Se envpia mail de aviso cuando la tarea es marcada como realizada, configurado en mailtrap
+- Se envía mail de aviso cuando la tarea es marcada como realizada, configurado en mailtrap
 - Unit test: PostManagmentTest
